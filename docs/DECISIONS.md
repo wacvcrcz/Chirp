@@ -42,6 +42,10 @@ Add a line when you decide something. Newest at the bottom of each table.
 | shadcn preset | `radix-nova` via `shadcn init --rtl --base radix -p nova`; `utils.ts` re-exports from the `cn` package (shadcn's drop-in for clsx + tailwind-merge) | Phase 0 |
 | Supabase keys | `.env.example` uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`; legacy anon/service_role keys are deprecated by end of 2026 | Phase 0 |
 | Test environment | Vitest runs in `node` (no jsdom yet); browser-level tests go to Playwright | Phase 0 |
+| Locale routing | `localePrefix: "always"` (every path is `/en/...` or `/ar/...`); next-intl middleware lives in `src/proxy.ts` because Next 16 renamed the middleware convention to proxy | Phase 1 |
+| Locale rendering | Locale routes set `instant = false` (cacheComponents): `<html lang dir>` needs `await params`, which Cache Components treats as blocking above any Suspense boundary. Revisit with parallel routes if a route needs a static shell | Phase 1 |
+| Design tokens | Brand constants `--canary --amber --ink --mist --night --slate --zellige` with semantic tokens mapped on top; shadcn's `link` button variant points at `--link` (docs/05 says canary is fill-only, shadcn defaulted to `text-primary`) | Phase 1 |
+| Kitchen sink | `/[locale]/dev/kitchen-sink` wrapped in the real `AppShell`; returns 404 in production; Playwright captures four screenshots into `test-results/screenshots/` | Phase 1 |
 
 ## Open
 
@@ -61,3 +65,4 @@ Add a line when you decide something. Newest at the bottom of each table.
 |---|---|
 | 2026-10-15 | Initial decisions captured from planning |
 | 2026-10-17 | Phase 0 scaffold: Next.js 16.4 (Turbopack, Cache Components), shadcn `radix-nova` RTL, strict TS, Vitest + Playwright, CI workflow; no features built |
+| 2026-10-17 | Phase 1: design tokens, Readex Pro, next-themes, `[locale]` routing (en/ar), logo, app shell, settings toggles, dev kitchen sink, four-mode screenshots. Arabic UI strings remain placeholders pending native review |
