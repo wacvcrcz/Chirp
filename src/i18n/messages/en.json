@@ -1,5 +1,85 @@
 {
-  "home": {
+  "app": {
+    "name": "Chirp",
     "tagline": "Short posts. Global voices."
+  },
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "alerts": "Alerts",
+    "profile": "Profile",
+    "label": "Main navigation"
+  },
+  "feed": {
+    "forYou": "For you",
+    "following": "Following",
+    "label": "Feed"
+  },
+  "chirp": {
+    "action": "Chirp",
+    "done": "Chirped",
+    "notReady": "Chirping opens in the next phase.",
+    "reply": "Reply",
+    "like": "Like"
+  },
+  "empty": {
+    "forYouTitle": "Your timeline is quiet",
+    "forYou": "Chirps from people you follow and people you may like will show up here.",
+    "following": "You are not following anyone yet. Pick a few accounts to fill this feed.",
+    "action": "Find people to follow"
+  },
+  "video": {
+    "tooLong": "This video is {seconds} seconds. Trim it to 30 seconds or less."
+  },
+  "search": {
+    "label": "Search Chirp",
+    "placeholder": "Search Chirp"
+  },
+  "rail": {
+    "whoToFollow": "Who to follow",
+    "whoToFollowEmpty": "Suggested accounts appear here once there are people to follow.",
+    "topics": "Topics",
+    "topicsEmpty": "Topics you pick during onboarding shape your For you feed."
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "language": "Language",
+    "english": "English",
+    "arabic": "العربية",
+    "placeholder": "This is a placeholder. Profile and account settings arrive in Phase 3."
+  },
+  "placeholder": {
+    "search": "Search arrives in Phase 7.",
+    "notifications": "Notifications arrive in Phase 7.",
+    "profile": "Your profile arrives in Phase 5."
+  },
+  "kitchenSink": {
+    "title": "Kitchen sink",
+    "note": "Development only. Use it to check tokens, themes and direction.",
+    "colors": "Colors",
+    "type": "Typography",
+    "buttons": "Buttons",
+    "tabs": "Tabs",
+    "chirps": "Chirps",
+    "motion": "Motion",
+    "sampleLatin": "The quick brown fox jumps over the lazy dog.",
+    "sampleArabic": "نصّ عربي للاختبار: الحروف تتصل، والأرقام تبقى 123.",
+    "sampleMixed": "Mixed text: بديت بالعربية ثم switched to English. 42 chirps.",
+    "samples": {
+      "name1": "Maya Chen",
+      "handle1": "mayachen",
+      "body1": "Shipping the Chirp app shell. The feed column stays quiet, dividers only, no cards. #build #rtl",
+      "name2": "يوسف العامري",
+      "handle2": "youssef",
+      "body2": "نصّ عربي تجريبي: نكتب بالعربية والداريجة، والأرقام تبقى 123. @chirp",
+      "name3": "Nadia Haddad",
+      "handle3": "nadia_h",
+      "body3": "Mixed text: بديت بالعربية ثم switched to English, and the direction still holds. https://chirp.example/hello",
+      "time": "2 hr"
+    }
   }
 }
