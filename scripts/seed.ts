@@ -194,10 +194,16 @@ const TOPICS = [
   ["darija", "Darija", "الداريجة"],
 ] as const;
 
-const sql = postgres(url, { prepare: false, max: 1, onnotice: () => {} });
+const sql = postgres(url, {
+  prepare: false,
+  max: 1,
+  onnotice: () => {},
+  ...(isLocalDatabaseUrl(url) ? {} : { ssl: "require" as const }),
+});
 
-try {
+async function main() {
   console.log("Seeding Chirp...");
+
 
   // Idempotent: refuse to stack a second seed on top of the first.
   const [{ count }] = await sql`select count(*)::int as count from profiles`;
@@ -343,6 +349,13 @@ try {
   console.log(
     `Seeded ${stats.profiles} profiles, ${stats.chirps} chirps, ${stats.follows} follows, ${stats.likes} likes, ${stats.user_topics} topic picks.`,
   );
-} finally {
-  await sql.end();
 }
+
+main()
+  .catch((error) => {
+    console.error("Seed failed:", error.message);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await sql.end();
+  });

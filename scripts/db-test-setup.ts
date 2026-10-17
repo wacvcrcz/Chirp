@@ -28,7 +28,11 @@ if (!isLocalDatabaseUrl(serverUrl)) {
   process.exit(1);
 }
 
-const admin = postgres(databaseUrl("postgres"), { max: 1, onnotice: () => {} });
+const admin = postgres(databaseUrl("postgres"), {
+  max: 1,
+  onnotice: () => {},
+  ssl: "require",
+});
 
 try {
   const existing = await admin`
@@ -47,7 +51,11 @@ try {
 // The migrations reference auth.users, which Supabase provides. A bare
 // Postgres (CI without Supabase) needs the same minimal shape. Supabase local
 // has the real table, so this is a no-op there.
-const target = postgres(databaseUrl(dbName), { max: 1, onnotice: () => {} });
+const target = postgres(databaseUrl(dbName), {
+  max: 1,
+  onnotice: () => {},
+  ssl: "require",
+});
 try {
   await target`
     create schema if not exists auth;

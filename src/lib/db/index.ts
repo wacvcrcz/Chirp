@@ -18,11 +18,16 @@ if (!connectionString) {
   );
 }
 
+const host = new URL(connectionString).hostname;
+const local = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(host);
+
 const client = postgres(connectionString, {
   prepare: false,
   max: 5,
   idle_timeout: 20,
   connect_timeout: 10,
+  // Hosted Supabase pooler connections require TLS.
+  ...(local ? {} : { ssl: "require" }),
 });
 
 export const db = drizzle(client, { schema });

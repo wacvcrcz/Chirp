@@ -1,10 +1,21 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import postgres from "postgres";
+import { isLocalDatabaseUrl } from "../src/lib/db/url";
 
 // Supabase applies these on `supabase db reset`; this runner applies the same
 // files to a hosted database (or a throwaway test database) with its own ledger.
 const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
+
+function connectionOptions(databaseUrl: string) {
+  return {
+    prepare: false,
+    max: 1,
+    onnotice: () => {},
+    // Hosted Postgres (Supabase pooler) requires TLS; local does not offer it.
+    ...(isLocalDatabaseUrl(databaseUrl) ? {} : { ssl: "require" as const }),
+  };
+}
 
 /**
  * Applies supabase/migrations/*.sql in filename order inside a ledger, so the hand-written
@@ -15,11 +26,7 @@ export async function migrate(
   databaseUrl: string,
   { log = false }: { log?: boolean } = {},
 ) {
-  const sql = postgres(databaseUrl, {
-    prepare: false,
-    max: 1,
-    onnotice: () => {},
-  });
+  const sql = postgres(databaseUrl, connectionOptions(databaseUrl));
 
   try {
     await sql`
