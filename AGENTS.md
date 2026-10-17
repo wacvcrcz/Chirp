@@ -6,7 +6,7 @@ X-style microblog. English-first, global. Arabic/Darija and RTL are first-class,
 Next.js (App Router) + TypeScript strict, Tailwind, shadcn/ui (Radix, RTL mode), TanStack Query, Zustand, React Hook Form + Zod, next-intl, next-themes, Sonner. Supabase (Postgres, Auth, Storage), Drizzle ORM, Upstash Redis, Vercel. Details: `docs/02-architecture.md`.
 
 ## Commands
-`pnpm dev` · `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm e2e` · `pnpm build` · `pnpm db:generate` · `pnpm db:migrate` · `pnpm db:seed` · `pnpm check:rtl`
+`pnpm dev` · `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm test:db` · `pnpm e2e` · `pnpm build` · `pnpm db:generate` · `pnpm db:migrate` · `pnpm db:seed` · `pnpm db:unseed` · `pnpm check:rtl`
 
 Run `typecheck`, `lint`, `test` and `check:rtl` before saying a task is done.
 
@@ -28,35 +28,29 @@ Run `typecheck`, `lint`, `test` and `check:rtl` before saying a task is done.
 - When you make or change a decision, add a line to `docs/DECISIONS.md`.
 - If a doc and the code disagree, say so and ask which is right.
 
-## Local database (Supabase via Docker)
+## Database (hosted dev project only)
 
-Supabase local is the only supported place for database tests. Start it, reset it, then seed:
-
-```bash
-npx supabase start                      # first run pulls images (needs Docker)
-npx supabase db reset                   # replays supabase/migrations/*.sql from scratch
-# copy DB + keys from `npx supabase status -o env` into .env.local:
-#   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
-#   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-#   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key>
-pnpm db:seed                            # 50 users, 400 chirps; refuses non-local URLs
-```
-
-Counter-trigger and RLS tests:
+There is no local Supabase and no Docker workflow. Development and tests use the hosted dev project. Credentials live in `.env` (git-ignored) and are read by the scripts; never open or echo that file.
 
 ```bash
-pnpm db:test-setup                      # creates chirp_test and applies migrations to it
-TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/chirp_test pnpm test:db
-
-# RLS check with the publishable (anon) key:
-TEST_SUPABASE_URL=http://127.0.0.1:54321 \
-TEST_SUPABASE_PUBLISHABLE_KEY=<publishable key> \
-  pnpm vitest run src/lib/db/rls.test.ts
+npx supabase link --project-ref <dev project ref>   # once per clone
+pnpm db:migrate                                     # supabase db push
+pnpm db:seed                                        # 50 users, 400 chirps
+pnpm db:unseed                                      # removes only @example.test seed accounts
+pnpm test:db                                        # database suite, non-destructive
 ```
 
-Without `TEST_DATABASE_URL` the database tests are skipped, so `pnpm test` stays green on a machine with no Docker. `pnpm db:migrate` applies the same SQL to a hosted database with its own ledger; local development uses `supabase db reset`.
+Rules:
+- `supabase/migrations/` is the single source of truth. Write forward-only SQL, then `supabase db push`. Do not add a second migration runner or a second history table.
+- Seeding and unseeding refuse to run when the project ref equals `PRODUCTION_PROJECT_REF`. Database tests apply the same guard and skip when `RUN_DB_TESTS` is not `1`. When `PRODUCTION_PROJECT_REF` is unset, seed, unseed and the tests warn and proceed; set it as soon as production exists.
+- Database tests never truncate. Each test creates its own users through the admin API (`test-<uuid>@example.com`, confirmed) and deletes exactly those users in a `finally` block; cascades remove their rows.
+- Tests assert on seeded data only through read-only queries. Do not depend on specific seed rows.
+- Pool sizing: `DB_POOL_SIZE` overrides. The app defaults to 1 (serverless); scripts and tests default to 5.
+- Manual RLS check: `set role anon; select count(*) from chirps;` in the SQL editor must fail, and the publishable key through PostgREST must return no rows.
 
-Manual RLS check for a hosted project: in the Supabase SQL editor, `set role anon; select count(*) from chirps;` must error with a permission/RLS failure, and the publishable key through PostgREST must return no rows.
+## Never read, print or paste values from .env files
+
+Do not `cat`, `grep`, `sed` or otherwise dump `.env`, `.env.local` or any variant, and never paste a key, password or connection string into chat, code, tests, logs, screenshots or commits. To diagnose configuration, print only derived, non-secret facts (hostname, port, project ref, whether a variable is set). `.env.example` documents names, never values.
 
 ## Where things are
 Spec `docs/01` · Architecture `docs/02` · Schema `docs/03` · API `docs/04` · Design `docs/05` · Feed and search `docs/06` · Media `docs/07` · Security `docs/08` · Phases `docs/09`. Read the relevant file when you start work on that area.

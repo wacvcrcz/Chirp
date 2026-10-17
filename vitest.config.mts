@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
+// Database tests skip themselves unless RUN_DB_TESTS=1 (set by test:db).
 export default defineConfig({
   resolve: {
     alias: {
@@ -11,8 +12,6 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     passWithNoTests: true,
-    // Database tests are skipped unless TEST_DATABASE_URL is set.
-    // See AGENTS.md for Supabase local and pnpm db:test-setup.
-    testTimeout: 20_000,
+    testTimeout: 30_000,
   },
 });

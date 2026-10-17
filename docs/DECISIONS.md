@@ -46,10 +46,10 @@ Add a line when you decide something. Newest at the bottom of each table.
 | Locale rendering | Locale routes set `instant = false` (cacheComponents): `<html lang dir>` needs `await params`, which Cache Components treats as blocking above any Suspense boundary. Revisit with parallel routes if a route needs a static shell | Phase 1 |
 | Design tokens | Brand constants `--canary --amber --ink --mist --night --slate --zellige` with semantic tokens mapped on top; shadcn's `link` button variant points at `--link` (docs/05 says canary is fill-only, shadcn defaulted to `text-primary`) | Phase 1 |
 | Kitchen sink | `/[locale]/dev/kitchen-sink` wrapped in the real `AppShell`; returns 404 in production; Playwright captures four screenshots into `test-results/screenshots/` | Phase 1 |
-| Migrations location | Hand-written SQL lives in `supabase/migrations/<timestamp>_*.sql` so `supabase db reset` replays it natively; `pnpm db:migrate` runs the same files against hosted databases with a `_chirp_migrations` ledger | Phase 2 |
-| DB driver | `postgres` (postgres.js) with `prepare: false` for the pooled connection, via `drizzle-orm/postgres-js`; `tsx` runs seed and migration scripts | Phase 2 |
-| Database tests | Vitest skips DB tests unless `TEST_DATABASE_URL` is set; `pnpm db:test-setup` creates `chirp_test` and applies migrations. RLS is tested with the publishable key when `TEST_SUPABASE_URL` and `TEST_SUPABASE_PUBLISHABLE_KEY` are present | Phase 2 |
-| Seed guard | `db:seed` refuses any `DATABASE_URL` whose host is not localhost/127.0.0.1/::1 unless `ALLOW_REMOTE_SEED=true` is set deliberately | Phase 2 |
+| Migrations | `supabase/migrations/<timestamp>_*.sql` is the single source; the Supabase CLI (`link`, `db push`) is the only runner. No custom runner and no `_chirp_migrations` table | Phase 2 |
+| DB driver | `postgres` (postgres.js) with `prepare: false` for the pooled connection, via `drizzle-orm/postgres-js`; `tsx` runs seed and unseed. Pool size via `DB_POOL_SIZE` (app default 1, scripts 5) | Phase 2 |
+| Database tests | Run only via `pnpm test:db` (`RUN_DB_TESTS=1`) against the hosted dev project. Each test creates confirmed `test-<uuid>@example.com` users through the admin API, asserts on its own rows and deletes those users in `finally`; no TRUNCATE. A guard refuses to run when the project ref equals `PRODUCTION_PROJECT_REF`; when it is unset, commands warn and proceed | Phase 2 |
+| Seed and unseed | `db:seed` and `db:unseed` refuse to run against `PRODUCTION_PROJECT_REF`. Seed accounts use `@example.test` with no usable password; `db:unseed` deletes only those accounts and their cascaded data | Phase 2 |
 | Time-sortable seed ids | uuidv7 only accepts the current time, so the seed rewrites the first 48 bits with each chirp's timestamp. Live code uses plain `uuidv7()` | Phase 2 |
 
 ## Open
@@ -70,5 +70,6 @@ Add a line when you decide something. Newest at the bottom of each table.
 |---|---|
 | 2026-10-15 | Initial decisions captured from planning |
 | 2026-10-17 | Phase 0 scaffold: Next.js 16.4 (Turbopack, Cache Components), shadcn `radix-nova` RTL, strict TS, Vitest + Playwright, CI workflow; no features built |
-| 2026-10-17 | Phase 2: hand-written SQL in `supabase/migrations` (reset replays it), Drizzle mirror, postgres.js client, Arabic search utilities, guarded seed, trigger/schema/RLS tests gated on `TEST_DATABASE_URL` |
+| 2026-10-17 | Phase 2: hand-written SQL in `supabase/migrations`, Drizzle mirror, postgres.js client, Arabic search utilities, guarded seed, non-destructive trigger/schema/RLS tests |
+| 2026-10-17 | Phase 2 cleanup: hosted dev project is the only database (no Docker or Supabase local). CLI `link` + `db push` replaced the custom runner; the six migrations were marked applied with `supabase migration repair --status applied --linked <versions>` and `_chirp_migrations` was dropped. Tests are non-destructive and guarded by `PRODUCTION_PROJECT_REF` |
 | 2026-10-17 | Phase 1: design tokens, Readex Pro, next-themes, `[locale]` routing (en/ar), logo, app shell, settings toggles, dev kitchen sink, four-mode screenshots. Arabic UI strings remain placeholders pending native review |

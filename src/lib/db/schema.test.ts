@@ -1,19 +1,15 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import {
-  hasTestDatabase,
-  resetData,
-  testClient,
-} from "@/lib/db/test-helpers";
+import { hasDatabase, testSql } from "@/lib/db/test-helpers";
 
-const sql = hasTestDatabase ? testClient() : null;
+const sql = hasDatabase ? testSql() : null;
 
-describe.skipIf(!hasTestDatabase)("schema", () => {
-  afterAll(async () => {
-    await sql?.end();
-  });
-
+/**
+ * Read-only catalog assertions. These create and delete no rows, so they are
+ * safe against the hosted dev project.
+ */
+describe.skipIf(!hasDatabase)("schema", () => {
   it("has every table from docs/03", async () => {
     if (!sql) return;
     const expected = [
@@ -80,23 +76,19 @@ describe.skipIf(!hasTestDatabase)("schema", () => {
           'bump_follow_counts'
         )
     `;
-    expect(rows.map((r) => r.proname).sort()).toEqual(
-      ["bump_follow_counts", "bump_like_count", "bump_reply_count", "handle_new_user"],
-    );
+    expect(rows.map((r) => r.proname).sort()).toEqual([
+      "bump_follow_counts",
+      "bump_like_count",
+      "bump_reply_count",
+      "handle_new_user",
+    ]);
   });
 
-  it("ships the migration files Supabase will replay", () => {
+  it("ships the migration files the Supabase CLI replays", () => {
     const files = readdirSync(join(process.cwd(), "supabase", "migrations"))
       .filter((f) => f.endsWith(".sql"))
       .sort();
     expect(files.length).toBeGreaterThanOrEqual(6);
     expect(files[0]).toMatch(/^\d{14}_/);
-  });
-
-  it("resets cleanly between tests", async () => {
-    if (!sql) return;
-    await resetData(sql);
-    const [{ count }] = await sql`select count(*)::int as count from profiles`;
-    expect(count).toBe(0);
   });
 });

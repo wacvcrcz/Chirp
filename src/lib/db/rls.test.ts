@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createClient } from "@supabase/supabase-js";
+import { assertNotProduction } from "@/lib/db/env-guard";
+import { hasDatabase } from "@/lib/db/test-helpers";
 
 /**
- * Proves the publishable (anon) key cannot read tables that have RLS on with no
- * policies. Requires Supabase local running with the key exported. This is the
- * automated half; AGENTS.md also documents the manual check for a hosted
- * project, where the server connection is the only writer.
+ * Proves the publishable key cannot read or write any table that has RLS on
+ * with no policies. Read-only apart from an insert that must be rejected.
  */
-const url = process.env.TEST_SUPABASE_URL;
-const key = process.env.TEST_SUPABASE_PUBLISHABLE_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 const TABLES = [
   "profiles",
@@ -25,9 +25,10 @@ const TABLES = [
   "suggested_accounts",
 ] as const;
 
-describe.skipIf(!url || !key)("RLS with the publishable key", () => {
+describe.skipIf(!hasDatabase || !url || !key)("RLS with the publishable key", () => {
   it("reads no rows from any table", async () => {
     if (!url || !key) return;
+    assertNotProduction("RLS tests");
     const supabase = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });

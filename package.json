@@ -11,14 +11,13 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate.ts",
+    "db:migrate": "supabase db push",
     "db:seed": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/seed.ts",
     "check:rtl": "node scripts/check-logical-props.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:test-setup": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/db-test-setup.ts",
-    "test:db": "vitest run src/lib/db",
-    "db:reset-local": "supabase db reset --local"
+    "test:db": "vitest run --config vitest.db.config.mts",
+    "db:unseed": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/unseed.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

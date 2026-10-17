@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { poolSize } from "./pool";
 
 /**
  * Server-only client. DATABASE_URL is the pooled (transaction mode) string;
@@ -23,7 +24,7 @@ const local = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(host);
 
 const client = postgres(connectionString, {
   prepare: false,
-  max: 5,
+  max: poolSize(1),
   idle_timeout: 20,
   connect_timeout: 10,
   // Hosted Supabase pooler connections require TLS.

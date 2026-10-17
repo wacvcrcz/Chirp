@@ -1,11 +1,13 @@
 import postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 import { detectLang, normalizeForSearch } from "../src/lib/text/normalize";
+import { assertNotProduction } from "../src/lib/db/env-guard";
 import { isLocalDatabaseUrl } from "../src/lib/db/url";
+import { poolSize } from "../src/lib/db/pool";
 
 /**
- * Refuses anything that is not clearly local. The guard is deliberately
- * strict: a typo in DATABASE_URL must never touch a real project.
+ * Seeds the hosted dev project. Refuses to run against the production project
+ * (PRODUCTION_PROJECT_REF); see src/lib/db/env-guard.ts.
  */
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -13,12 +15,10 @@ if (!url) {
   process.exit(1);
 }
 
-if (process.env.ALLOW_REMOTE_SEED !== "true" && !isLocalDatabaseUrl(url)) {
-  console.error(
-    `Refusing to seed ${new URL(url).hostname || "(unparseable URL)"}. ` +
-      `Seeding only runs against local Postgres (localhost, 127.0.0.1, ::1). ` +
-      `For a throwaway hosted dev database, set ALLOW_REMOTE_SEED=true deliberately.`,
-  );
+try {
+  assertNotProduction("db:seed");
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
 
@@ -194,9 +194,16 @@ const TOPICS = [
   ["darija", "Darija", "الداريجة"],
 ] as const;
 
+try {
+  assertNotProduction("db:seed");
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
+
 const sql = postgres(url, {
   prepare: false,
-  max: 1,
+  max: poolSize(5),
   onnotice: () => {},
   ...(isLocalDatabaseUrl(url) ? {} : { ssl: "require" as const }),
 });
@@ -209,7 +216,7 @@ async function main() {
   const [{ count }] = await sql`select count(*)::int as count from profiles`;
   if (count > 0) {
     console.error(
-      `profiles already has ${count} rows. Reset the database first (pnpm db:reset-local).`,
+      `profiles already has ${count} rows. Run pnpm db:unseed before seeding again.`,
     );
     process.exit(1);
   }
