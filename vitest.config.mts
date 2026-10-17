@@ -11,5 +11,8 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     passWithNoTests: true,
+    // Database tests are skipped unless TEST_DATABASE_URL is set.
+    // See AGENTS.md for Supabase local and pnpm db:test-setup.
+    testTimeout: 20_000,
   },
 });

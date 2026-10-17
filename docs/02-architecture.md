@@ -74,7 +74,8 @@ src/
     ids.ts rate-limit.ts cursor.ts
   i18n/ messages/en.json ar.json routing.ts
   styles/globals.css
-drizzle/        # generated and hand-written SQL migrations
+drizzle/        # drizzle-kit output
+supabase/       # config.toml, migrations/ (hand-written SQL), seed.sql
 scripts/        # seed.ts, check-logical-props.mjs
 e2e/
 ```

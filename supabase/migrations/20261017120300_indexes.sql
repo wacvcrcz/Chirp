@@ -1,0 +1,13 @@
+create index chirps_author_time  on chirps (author_id, created_at desc, id desc) where deleted_at is null;
+create index chirps_time_top     on chirps (created_at desc, id desc) where deleted_at is null and reply_to_id is null;
+create index chirps_replies      on chirps (reply_to_id, created_at asc) where deleted_at is null;
+create index chirps_search_trgm  on chirps using gin (body_search gin_trgm_ops);
+create index profiles_user_trgm  on profiles using gin ((username::text) gin_trgm_ops);
+create index profiles_name_trgm  on profiles using gin (display_name gin_trgm_ops);
+create index likes_chirp         on likes (chirp_id);
+create index follows_followee    on follows (followee_id);
+create index notifs_user_time    on notifications (user_id, created_at desc);
+create index media_chirp         on media (chirp_id);
+create index media_orphans       on media (created_at) where chirp_id is null;
+create index reports_open        on reports (created_at) where status = 'open';
+create index impressions_user    on impressions (user_id, seen_at desc);

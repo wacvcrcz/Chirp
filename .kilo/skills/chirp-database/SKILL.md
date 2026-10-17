@@ -6,7 +6,7 @@ description: Chirp Postgres schema rules and migration workflow. Use when changi
 # Chirp database
 
 ## Source of truth
-`docs/03-database-schema.md` defines the schema. Migrations are hand-written SQL in `drizzle/`; mirror tables in `src/lib/db/schema.ts`. Triggers, extensions and RLS live only in SQL migrations.
+`docs/03-database-schema.md` defines the schema. Migrations are hand-written SQL in `supabase/migrations/`; mirror tables in `src/lib/db/schema.ts`. `supabase db reset` replays them locally, `pnpm db:migrate` applies them to hosted databases. Triggers, extensions and RLS live only in SQL migrations.
 
 ## Rules
 - Profiles use the auth user's id; a trigger creates the profile row. `username` is null until onboarding completes.

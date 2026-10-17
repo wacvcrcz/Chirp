@@ -28,6 +28,36 @@ Run `typecheck`, `lint`, `test` and `check:rtl` before saying a task is done.
 - When you make or change a decision, add a line to `docs/DECISIONS.md`.
 - If a doc and the code disagree, say so and ask which is right.
 
+## Local database (Supabase via Docker)
+
+Supabase local is the only supported place for database tests. Start it, reset it, then seed:
+
+```bash
+npx supabase start                      # first run pulls images (needs Docker)
+npx supabase db reset                   # replays supabase/migrations/*.sql from scratch
+# copy DB + keys from `npx supabase status -o env` into .env.local:
+#   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+#   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+#   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key>
+pnpm db:seed                            # 50 users, 400 chirps; refuses non-local URLs
+```
+
+Counter-trigger and RLS tests:
+
+```bash
+pnpm db:test-setup                      # creates chirp_test and applies migrations to it
+TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/chirp_test pnpm test:db
+
+# RLS check with the publishable (anon) key:
+TEST_SUPABASE_URL=http://127.0.0.1:54321 \
+TEST_SUPABASE_PUBLISHABLE_KEY=<publishable key> \
+  pnpm vitest run src/lib/db/rls.test.ts
+```
+
+Without `TEST_DATABASE_URL` the database tests are skipped, so `pnpm test` stays green on a machine with no Docker. `pnpm db:migrate` applies the same SQL to a hosted database with its own ledger; local development uses `supabase db reset`.
+
+Manual RLS check for a hosted project: in the Supabase SQL editor, `set role anon; select count(*) from chirps;` must error with a permission/RLS failure, and the publishable key through PostgREST must return no rows.
+
 ## Where things are
 Spec `docs/01` · Architecture `docs/02` · Schema `docs/03` · API `docs/04` · Design `docs/05` · Feed and search `docs/06` · Media `docs/07` · Security `docs/08` · Phases `docs/09`. Read the relevant file when you start work on that area.
 
